@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Parent {
@@ -42,14 +41,15 @@ model Class {
 }
 
 model ClassRegistration {
-  id        String   @id @default(cuid())
-  class     Class    @relation(fields: [classId], references: [id])
-  classId   String
-  student   Student  @relation(fields: [studentId], references: [id])
-  studentId String
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  class         Class    @relation(fields: [classId], references: [id])
+  classId       String
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+  scheduledDate DateTime // The specific date for this class session
+  createdAt     DateTime @default(now())
 
-  @@unique([classId, studentId])
+  @@unique([classId, studentId, scheduledDate])
 }
 
 model Subscription {

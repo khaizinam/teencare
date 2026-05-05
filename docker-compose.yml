@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
@@ -11,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./docker/db:/var/lib/postgresql/data
 
   web:
     build:
@@ -21,8 +19,9 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/teencare
+    volumes:
+      - .:/app
     depends_on:
       - db
-
-volumes:
-  pgdata:
+    # Tự động hóa: cài đặt thư viện, tạo client, đồng bộ cấu trúc DB và bật server
+    command: sh -c "yarn install && npx prisma generate && npx prisma db push --accept-data-loss && yarn dev"
