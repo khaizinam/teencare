@@ -1,55 +1,39 @@
-import ParentStudentForm from '@/components/ParentStudentForm'
+import Link from 'next/link'
 import WeeklySchedule from '@/components/WeeklySchedule'
-import ClassCreator from '@/components/ClassCreator'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 bg-gray-50">
-      <div className="w-full max-w-6xl mb-12">
-        <h1 className="text-4xl font-extrabold text-indigo-900 mb-2 text-center">TeenUp Mini LMS</h1>
-        <p className="text-indigo-600 font-medium text-center">Product Builder Test - Implementation Dashboard</p>
-      </div>
+    <main className="flex flex-col items-center justify-center min-h-[80vh] p-8">
+      <div className="w-full max-w-4xl text-center space-y-6">
+        <h1 className="text-5xl font-extrabold text-indigo-900 mb-4">Welcome to TeenUp LMS</h1>
+        <p className="text-xl text-indigo-600 font-medium">
+          Manage your students, parents, and weekly classes from the sidebar.
+        </p>
 
-      <div className="space-y-12 w-full max-w-7xl mx-auto">
-        <section id="onboarding">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-            <h2 className="text-2xl font-bold text-gray-800">Onboarding</h2>
-          </div>
-          <ParentStudentForm />
-        </section>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <Link href="/parents" className="bg-white p-8 rounded-2xl shadow-sm border border-indigo-100 hover:shadow-lg hover:border-indigo-300 transition-all flex flex-col items-center">
+            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">P</div>
+            <h2 className="text-xl font-bold text-gray-800">Parents</h2>
+            <p className="text-gray-500 mt-2 text-sm text-center">Manage parent profiles and contact information.</p>
+          </Link>
 
-        <section id="schedule">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-            <h2 className="text-2xl font-bold text-gray-800">Class Management</h2>
-          </div>
-          <ClassCreator />
-          <WeeklySchedule />
-        </section>
+          <Link href="/students" className="bg-white p-8 rounded-2xl shadow-sm border border-blue-100 hover:shadow-lg hover:border-blue-300 transition-all flex flex-col items-center">
+            <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">S</div>
+            <h2 className="text-xl font-bold text-gray-800">Students</h2>
+            <p className="text-gray-500 mt-2 text-sm text-center">Enroll students and link them to their parents.</p>
+          </Link>
 
-        <section id="docs" className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-6xl mx-auto w-full">
-          <h2 className="text-xl font-bold text-indigo-900 mb-4">System Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-            <div className="space-y-2">
-              <h3 className="font-bold text-gray-700">Database</h3>
-              <p className="text-gray-600">PostgreSQL with Prisma. Validations for overlaps and sessions handled in transactions.</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-bold text-gray-700">API Layer</h3>
-              <p className="text-gray-600">RESTful Next.js Route Handlers with structured error handling and JSON responses.</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-bold text-gray-700">CI/CD</h3>
-              <p className="text-gray-600">Dockerized environment. Run <code>docker-compose up</code> to spin up DB and Web app.</p>
-            </div>
-          </div>
-        </section>
+          <Link href="/classes" className="bg-white p-8 rounded-2xl shadow-sm border border-purple-100 hover:shadow-lg hover:border-purple-300 transition-all flex flex-col items-center">
+            <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">C</div>
+            <h2 className="text-xl font-bold text-gray-800">Classes</h2>
+            <p className="text-gray-500 mt-2 text-sm text-center">Create classes, view weekly schedules and manage seats.</p>
+          </Link>
+        </div>
       </div>
       
-      <footer className="mt-20 py-8 border-t border-gray-200 w-full max-w-6xl text-center text-gray-400 text-sm">
-        TeenUp Product Builder Test © 2026
-      </footer>
+      <div className="w-full max-w-6xl mt-12">
+        <WeeklySchedule />
+      </div>
     </main>
   )
 }

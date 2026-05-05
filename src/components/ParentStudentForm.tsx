@@ -1,10 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+interface ParentData {
+  id: string;
+  name: string;
+  phone: string;
+}
 
 export default function ParentStudentForm() {
   const [parentId, setParentId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [parents, setParents] = useState<ParentData[]>([])
+
+  const fetchParents = async () => {
+    try {
+      const res = await fetch('/api/parents')
+      if (res.ok) {
+        const data = await res.json()
+        setParents(data)
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  useEffect(() => {
+    fetchParents()
+  }, [])
 
   const handleParentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -20,8 +43,9 @@ export default function ParentStudentForm() {
       })
       const result = await res.json()
       if (res.ok) {
-        alert('Parent created! ID: ' + result.id)
+        alert('Parent created!')
         setParentId(result.id)
+        fetchParents()
       } else {
         alert('Error: ' + result.error)
       }
@@ -108,8 +132,19 @@ export default function ParentStudentForm() {
             <input name="currentGrade" type="number" required className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 bg-white" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Parent ID</label>
-            <input name="parentId" defaultValue={parentId} required className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 bg-white" placeholder="Paste Parent ID here" />
+            <label className="block text-sm font-medium text-gray-700">Select Parent</label>
+            <select 
+              name="parentId" 
+              value={parentId} 
+              onChange={(e) => setParentId(e.target.value)} 
+              required 
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 bg-white"
+            >
+              <option value="" disabled>-- Choose a parent --</option>
+              {parents.map(p => (
+                <option key={p.id} value={p.id}>{p.name} ({p.phone})</option>
+              ))}
+            </select>
           </div>
           <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400">
             {loading ? 'Creating...' : 'Create Student'}

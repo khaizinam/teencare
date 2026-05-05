@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+interface StudentData {
+  id: string;
+  name: string;
+}
+
 interface ClassData {
   id: string;
   name: string;
@@ -17,6 +22,7 @@ interface ClassData {
 
 export default function WeeklySchedule() {
   const [classes, setClasses] = useState<ClassData[]>([])
+  const [students, setStudents] = useState<StudentData[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedClass, setSelectedClass] = useState<string | null>(null)
   const [studentId, setStudentId] = useState('')
@@ -39,6 +45,12 @@ export default function WeeklySchedule() {
     let mounted = true;
     const init = async () => {
       await fetchClasses(mounted)
+      try {
+        const res = await fetch('/api/students')
+        if (res.ok && mounted) {
+          setStudents(await res.json())
+        }
+      } catch {}
     }
     init()
     return () => { mounted = false }
@@ -100,19 +112,23 @@ export default function WeeklySchedule() {
         <div className="mt-8 bg-indigo-900 text-white p-6 rounded-2xl shadow-xl animate-in fade-in slide-in-from-bottom-4">
           <h3 className="text-xl font-bold mb-4">Register for {classes.find(c => c.id === selectedClass)?.name}</h3>
           <form onSubmit={handleRegister} className="flex flex-col md:flex-row gap-4">
-            <input 
-              placeholder="Student ID" 
+            <select 
               value={studentId} 
               onChange={e => setStudentId(e.target.value)} 
               required 
-              className="bg-white/10 border border-white/20 rounded-md p-2 flex-1 text-white placeholder-white/50" 
-            />
+              className="bg-white border border-gray-300 rounded-md p-2 flex-1 text-gray-900" 
+            >
+              <option value="" disabled>-- Select Student --</option>
+              {students.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
             <input 
               type="date" 
               value={scheduledDate} 
               onChange={e => setScheduledDate(e.target.value)} 
               required 
-              className="bg-white/10 border border-white/20 rounded-md p-2 text-white" 
+              className="bg-white border border-gray-300 rounded-md p-2 text-gray-900" 
             />
             <button type="submit" className="bg-white text-indigo-900 font-bold py-2 px-6 rounded-md hover:bg-indigo-100 transition-colors">
               Confirm Registration
