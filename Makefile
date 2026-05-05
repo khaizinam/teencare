@@ -1,4 +1,4 @@
-.PHONY: up build down logs
+.PHONY: up build down logs seed restart
 
 up:
 	docker compose up -d
@@ -11,3 +11,9 @@ down:
 
 logs:
 	docker compose logs -f web
+
+seed:
+	docker compose exec web npx prisma db seed
+
+restart:
+	docker compose restart
