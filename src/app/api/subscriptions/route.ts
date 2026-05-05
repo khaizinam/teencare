@@ -25,3 +25,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
+
+export async function GET() {
+  try {
+    const subscriptions = await prisma.subscription.findMany({
+      include: {
+        student: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+    return NextResponse.json(subscriptions)
+  } catch (error) {
+    console.error('Error fetching subscriptions:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}

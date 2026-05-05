@@ -11,6 +11,7 @@ export default function Sidebar() {
     { name: 'Parents', path: '/parents' },
     { name: 'Students', path: '/students' },
     { name: 'Classes', path: '/classes' },
+    { name: 'Subscriptions', path: '/subscriptions' },
   ]
 
   return (

@@ -1,115 +1,94 @@
 # TeenUp Product Builder - Mini LMS
 
-Dự án Mini LMS (Learning Management System) được xây dựng với Next.js 15, PostgreSQL, và Prisma ORM.
+Dự án Mini LMS (Learning Management System) được xây dựng với Next.js 15, PostgreSQL, và Prisma ORM theo các yêu cầu của bài test Product Builder.
 
 ---
 
 ## 1. Cách Build và Chạy Dự Án (Build & Run)
 
-Dự án được thiết lập sẵn với Docker để dễ dàng triển khai.
+Dự án được thiết lập sẵn với Docker và Makefile để tối ưu hóa việc quản lý.
 
-### Sử dụng Docker (Môi trường Dev - Tự động 100%)
+### Sử dụng Docker (Khuyên dùng)
 Yêu cầu: Đã cài đặt Docker và Docker Compose.
-1. Mở terminal tại thư mục gốc của dự án.
-2. Chạy lệnh sau để khởi động Database và Container Web (chạy ngầm):
-   ```bash
-   docker compose up -d
-   ```
-   *(Docker sẽ tự động cài đặt thư viện, đồng bộ Database và bật server Next.js).*
-3. Nếu muốn xem log (để theo dõi quá trình cài đặt / debug):
-   ```bash
-   docker compose logs -f web
-   ```
-4. Truy cập ứng dụng tại trình duyệt: [http://localhost:3000](http://localhost:3000)
 
-*(Lưu ý: Dữ liệu database được lưu trữ tại thư mục `./docker/db` thông qua bind mount).*
+1. **Khởi động dự án**:
+   ```bash
+   make up
+   ```
+   *(Lệnh này sẽ khởi chạy database và web container, tự động cài đặt dependencies và migrate database).*
 
-### Chạy Local (Không dùng Docker)
-1. Cài đặt dependencies:
+2. **Khởi tạo dữ liệu mẫu (Seed Data)**:
+   Sau khi container web đã sẵn sàng, chạy lệnh sau để nạp 2 Parents, 3 Students và 2 Classes mẫu:
    ```bash
-   yarn install
+   make seed
    ```
-2. Khởi tạo Prisma Client (kết nối với Database Postgres có sẵn):
+
+3. **Xem logs**:
    ```bash
-   npx prisma generate
+   make logs
    ```
-3. Chạy server phát triển:
-   ```bash
-   yarn dev
-   ```
+
+4. **Truy cập ứng dụng**: [http://localhost:3000](http://localhost:3000)
+
+### Các lệnh Makefile hỗ trợ khác
+- `make build`: Build lại các images.
+- `make down`: Dừng và gỡ bỏ các containers.
+- `make restart`: Khởi động lại dự án.
 
 ---
 
-## 2. Các Hoạt Động / Chức Năng Chính (Operations)
+## 2. Database Schema (Prisma Models)
 
-- **Quản lý Phụ Huynh & Học Sinh**: Cho phép tạo mới hồ sơ phụ huynh và liên kết hồ sơ học sinh (với các thông tin như ngày sinh, giới tính, khối lớp).
-- **Lên Lịch & Quản Lý Lớp Học**: Tạo lớp học với khung giờ, giáo viên và giới hạn sĩ số. Hiển thị lịch học theo tuần.
-- **Đăng Ký Học**: Học sinh có thể đăng ký vào các lớp học. Hệ thống tự động kiểm tra:
-  - Lớp đã đầy chưa.
-  - Học sinh có bị trùng lịch học không.
-  - Gói học (Subscription) còn hiệu lực và còn buổi học không.
-- **Quản Lý Gói Học (Subscriptions)**: Theo dõi số buổi học đã dùng, tổng số buổi, tự động hoàn buổi (refund) nếu hủy đăng ký trước giờ học 24 tiếng.
-
----
-
-## 3. Các Router Giao Diện (Pages/Routes)
-
-Ứng dụng sử dụng Next.js App Router (Single Page Dashboard cho mục đích test):
-- **`/` (Trang chủ - Dashboard)**: Nơi tập trung toàn bộ giao diện quản lý:
-  - **Onboarding**: Form tạo Phụ huynh và Học sinh.
-  - **Class Management**: Form tạo lớp học mới và Bảng Lịch học hàng tuần (Weekly Schedule) cho phép click để đăng ký lớp.
+Hệ thống sử dụng các Models chính sau:
+- **Parent**: Lưu trữ thông tin phụ huynh (`name`, `phone`, `email`).
+- **Student**: Thông tin học sinh, liên kết với một `Parent`.
+- **Class**: Thông tin lớp học, bao gồm `dayOfWeek` (0-6), `timeSlot` (VD: "08:00-10:00"), và `maxStudents`.
+- **Subscription**: Gói học của học sinh, quản lý `totalSessions`, `usedSessions`, và `endDate`.
+- **ClassRegistration**: Bản ghi đăng ký của học sinh vào một lớp cụ thể vào một ngày cụ thể (`scheduledDate`).
 
 ---
 
-## 4. Các API Endpoints (RESTful API)
+## 3. Các Chức Năng Chính & Nghiệp Vụ (Key Features)
 
-Các API được thiết kế chuẩn RESTful, trả về định dạng JSON.
+### Quản lý Nghiệp vụ Đăng ký lớp
+- **Kiểm tra sĩ số**: Không cho đăng ký nếu lớp đã đầy chỗ vào ngày đó.
+- **Kiểm tra trùng lịch**: Không cho học sinh đăng ký 2 lớp có cùng khung giờ trong cùng một ngày.
+- **Kiểm tra gói học**: Chỉ cho đăng ký nếu gói học còn hạn sử dụng và còn số buổi học.
+- **Chặn đăng ký quá khứ**: Không cho phép đăng ký vào các ngày đã trôi qua.
+- **Hủy lịch có điều kiện**: Hủy trước 24h sẽ được hoàn lại 1 buổi học vào gói. Hủy sát giờ sẽ không được hoàn buổi.
 
-### Phụ Huynh (Parents)
-- `POST /api/parents`: Tạo mới phụ huynh.
-- `GET /api/parents/[id]`: Lấy thông tin chi tiết phụ huynh (kèm danh sách học sinh).
-
-### Học Sinh (Students)
-- `POST /api/students`: Tạo mới học sinh (cần truyền `parentId`).
-- `GET /api/students/[id]`: Lấy thông tin chi tiết học sinh (kèm lịch sử đăng ký và gói học).
-
-### Lớp Học (Classes)
-- `POST /api/classes`: Tạo lớp học mới.
-- `GET /api/classes`: Lấy danh sách lớp học (có thể lọc qua query `?day=0` - Chủ nhật, `1` - Thứ 2...).
-
-### Đăng Ký (Registrations)
-- `POST /api/classes/[classId]/register`: Đăng ký học sinh vào lớp (tự động trừ 1 buổi học trong Subscription).
-- `DELETE /api/registrations/[id]`: Hủy đăng ký. Tự động hoàn lại 1 buổi học nếu hủy trước 24h.
-
-### Gói Học (Subscriptions)
-- `POST /api/subscriptions`: Khởi tạo gói học cho học sinh.
-- `GET /api/subscriptions/[id]`: Kiểm tra trạng thái gói học.
-- `PATCH /api/subscriptions/[id]/use`: Chủ động đánh dấu đã dùng 1 buổi học.
+### Giao diện Người dùng (UI/UX)
+- **Sidebar Navigation**: Hệ thống điều hướng chuyên nghiệp qua các trang Parents, Students, Classes, Subscriptions.
+- **Weekly Schedule**: Bảng lịch học 7 ngày tại Dashboard, cho phép chọn nhanh lớp để đăng ký.
+- **Student Control Panel**: Tại trang Students, khi bấm vào một học sinh sẽ hiện bảng điều khiển chi tiết (Mua gói học, Đăng ký lớp, Xem lịch sử và Hủy lớp).
+- **Subscription Management**: Trang quản lý tập trung toàn bộ các gói học, cho phép "Điểm danh" (Mark Session Used) để trừ buổi học thủ công.
 
 ---
 
-## 5. Cấu Trúc Dự Án (Project Structure)
+## 4. Các API Endpoints (RESTful)
 
-```text
-/teencare
-├── .agent/
-│   └── rules/             # Các quy tắc dành cho Agent (Workflow, API Pattern)
-├── .github/workflows/     # CI/CD pipeline (Lint, Type check, Build)
-├── docker/db/             # Thư mục chứa dữ liệu PostgreSQL (Bind mount)
-├── prisma/
-│   └── schema.prisma      # Định nghĩa Schema Database & Models
-├── src/
-│   ├── app/
-│   │   ├── api/           # Chứa toàn bộ các Backend Route Handlers (REST API)
-│   │   ├── globals.css    # Global styles (Tailwind)
-│   │   ├── layout.tsx     # Layout chính của Next.js
-│   │   └── page.tsx       # Trang Dashboard chính (UI Frontend)
-│   ├── components/        # Chứa các React Components tái sử dụng
-│   │   ├── ClassCreator.tsx
-│   │   ├── ParentStudentForm.tsx
-│   │   └── WeeklySchedule.tsx
-│   └── lib/
-│       └── prisma.ts      # Khởi tạo singleton Prisma Client (Sử dụng PrismaPg Adapter)
-├── Dockerfile             # Cấu hình build Docker image (Node 22 Slim)
-└── docker compose.yml     # Orchestration cho Web App & Postgres
-```
+### Parents & Students
+- `POST /api/parents` | `GET /api/parents`
+- `POST /api/students` | `GET /api/students`
+
+### Classes & Registrations
+- `POST /api/classes` | `GET /api/classes`
+- `POST /api/classes/[classId]/register`: Đăng ký lớp (kèm các bước kiểm tra nghiệp vụ).
+- `DELETE /api/registrations/[id]`: Hủy đăng ký (kèm logic hoàn buổi >24h).
+
+### Subscriptions
+- `POST /api/subscriptions`: Mua gói học mới.
+- `GET /api/subscriptions`: Danh sách toàn bộ gói học.
+- `PATCH /api/subscriptions/[id]/use`: Đánh dấu đã sử dụng 1 buổi học.
+
+---
+
+## 5. Ví dụ Dữ liệu Mẫu (Seed)
+Khi chạy `make seed`, hệ thống sẽ nạp:
+- **2 Phụ huynh**: Nguyễn Văn A, Trần Thị B.
+- **3 Học sinh**: Nguyễn Con Một, Nguyễn Con Hai (thuộc Parent A), Trần Con Ba (thuộc Parent B).
+- **2 Lớp học**: Toán Tư Duy (Thứ 2), Tiếng Anh Giao Tiếp (Thứ 4).
+- **1 Gói học**: Được cấp sẵn cho học sinh "Nguyễn Con Một" để bạn có thể test đăng ký lớp ngay.
+
+---
+*Dự án được thực hiện bởi Antigravity Agent.*

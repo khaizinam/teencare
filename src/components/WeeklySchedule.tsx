@@ -127,6 +127,7 @@ export default function WeeklySchedule() {
               type="date" 
               value={scheduledDate} 
               onChange={e => setScheduledDate(e.target.value)} 
+              min={new Date().toISOString().split('T')[0]}
               required 
               className="bg-white border border-gray-300 rounded-md p-2 text-gray-900" 
             />

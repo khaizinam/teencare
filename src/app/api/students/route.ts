@@ -32,6 +32,8 @@ export async function GET() {
     const students = await prisma.student.findMany({
       include: {
         parent: true,
+        subscriptions: { orderBy: { createdAt: 'desc' } },
+        registrations: { include: { class: true }, orderBy: { scheduledDate: 'desc' } }
       },
     })
     return NextResponse.json(students)

@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client'
 
 export async function POST(
   request: Request,
-  { params }: { params: { classId: string } }
+  { params }: { params: Promise<{ classId: string }> }
 ) {
   try {
     const body = await request.json()
@@ -14,8 +14,15 @@ export async function POST(
       return NextResponse.json({ error: 'Missing studentId or scheduledDate' }, { status: 400 })
     }
 
-    const classId = params.classId
+    const resolvedParams = await params
+    const classId = resolvedParams.classId
     const targetDate = new Date(scheduledDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (targetDate < today) {
+      return NextResponse.json({ error: 'Cannot register for a past date' }, { status: 400 })
+    }
 
     // 1. Get Class info
     const targetClass = await prisma.class.findUnique({
@@ -37,10 +44,11 @@ export async function POST(
     }
 
     // 3. Check Subscription
+    
     const subscription = await prisma.subscription.findFirst({
       where: {
         studentId,
-        endDate: { gte: new Date() },
+        endDate: { gte: today },
         usedSessions: { lt: prisma.subscription.fields.totalSessions }
       }
     })
