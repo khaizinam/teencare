@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Parent {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String
+  email     String    @unique
+  students  Student[]
+  createdAt DateTime  @default(now())
+}
+
+model Student {
+  id           String              @id @default(cuid())
+  name         String
+  dob          DateTime
+  gender       String
+  currentGrade Int
+  parent       Parent              @relation(fields: [parentId], references: [id])
+  parentId     String
+  registrations ClassRegistration[]
+  subscriptions Subscription[]
+  createdAt    DateTime            @default(now())
+}
+
+model Class {
+  id           String              @id @default(cuid())
+  name         String
+  subject      String
+  dayOfWeek    Int                 // 0 = Sunday, 1 = Monday, etc.
+  timeSlot     String              // e.g., "08:00-10:00"
+  teacherName  String
+  maxStudents  Int
+  registrations ClassRegistration[]
+  createdAt    DateTime            @default(now())
+}
+
+model ClassRegistration {
+  id        String   @id @default(cuid())
+  class     Class    @relation(fields: [classId], references: [id])
+  classId   String
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId String
+  createdAt DateTime @default(now())
+
+  @@unique([classId, studentId])
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+  packageName   String
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  totalSessions Int
+  usedSessions  Int      @default(0)
+  createdAt     DateTime @default(now())
+}
